@@ -38,7 +38,8 @@ GEMINI_API_KEY=あなたのAPIキーをここに記入
 python generate_monthly_report.py
 ```
 
-実行が完了すると、フォルダ内に新しい Markdown ファイルが生成されます。
+実行が完了すると、フォルダ内に新しい Markdown 形式の月報が生成されます。
+処理が完了すると、元のExcelファイルと生成されたMarkdownファイルは自動的に `Archive` フォルダに移動されます。
 
 ### ドライラン（動作確認のみ）
 
@@ -53,6 +54,7 @@ python generate_monthly_report.py --dry-run
 - `generate_monthly_report.py`: メインスクリプト
 - `Prompt.md`: Geminiへの詳細な指示プロンプト
 - `.env`: APIキー設定ファイル（作成が必要）
+- `Archive/`: 処理済みファイル保存用（自動作成）
 - `*.xlsx`: 読み込み対象の日報Excelファイル
 - `README.md`: 本ファイル
 

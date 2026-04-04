@@ -3,8 +3,11 @@ import glob
 import pandas as pd
 import re
 import argparse
+import shutil
 from google import genai
 from dotenv import load_dotenv
+
+ARCHIVE_DIR = "Archive"
 
 def load_config():
     """Load configuration and setup Client."""
@@ -102,6 +105,21 @@ def main():
             with open(output_filename, "w", encoding="utf-8") as f:
                 f.write(report_content)
             print(f"Successfully generated: {output_filename}")
+
+            # 6. Archive processed files
+            if not os.path.exists(ARCHIVE_DIR):
+                os.makedirs(ARCHIVE_DIR)
+            
+            try:
+                # Move Excel source file
+                shutil.move(file_path, os.path.join(ARCHIVE_DIR, os.path.basename(file_path)))
+                print(f"Archived source: {file_path} -> {ARCHIVE_DIR}/")
+                
+                # Move generated Markdown report
+                shutil.move(output_filename, os.path.join(ARCHIVE_DIR, output_filename))
+                print(f"Archived report: {output_filename} -> {ARCHIVE_DIR}/")
+            except Exception as e:
+                print(f"Error archiving files: {e}")
 
 if __name__ == "__main__":
     main()
