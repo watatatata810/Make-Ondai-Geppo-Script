@@ -39,11 +39,10 @@ def generate_report(client, prompt_template, excel_data, campus_name):
     """Call Gemini API using google-genai SDK to generate the report."""
     full_prompt = f"{prompt_template}\n\n### DATA FROM EXCEL ({campus_name})\n{excel_data}"
     
-    print(f"Calling Gemini API (gemini-2.0-flash) for {campus_name}...")
+    print(f"Calling Gemini API (gemini-3-flash-preview) for {campus_name}...")
     try:
-        # Use gemini-2.0-flash for speed and free tier support
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-3-flash-preview',
             contents=full_prompt
         )
         return response.text
