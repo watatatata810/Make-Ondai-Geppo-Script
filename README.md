@@ -30,11 +30,11 @@ GEMINI_API_KEY=あなたのAPIキーをここに記入
 
 ## 使い方
 
-### 月報ファイルを配置する
+### 1.月報ファイルを配置する
 
 プロジェクトルートにエクセルファイルを配置します。ファイル名の形式は「XXXX年XX月度_〇〇キャンパス_業務日報.xlsx」としてください
 
-### 月報を生成する
+### 2.月報を生成する
 
 ターミナル（PowerShell等）を開き、本フォルダで以下のコマンドを実行します。
 
@@ -44,6 +44,29 @@ python generate_monthly_report.py
 
 実行が完了すると、フォルダ内に新しい Markdown 形式の月報が生成されます。
 処理が完了すると、元のExcelファイルと生成されたMarkdownファイルは自動的に `Archive` フォルダに移動されます。
+
+### 3.マークダウンファイルを編集する。
+
+Markdownファイルを開き、AIが生成した月報を確認します。必要に応じて修正してください。
+
+### 4.月報をPDF化する（CLI版）
+
+ターミナルで以下のコマンドを実行すると、フォルダ内のMarkdownファイルを一括で「改ページなし・横幅自動調整済み」のPDFに変換します。
+
+```bash
+npm run convert
+```
+
+### 4-2.月報をPDF化する（GUI版）
+
+ブラウザ上で確認しながら、余白（Padding）を自由に調整してPDFを生成できます。
+
+1. 以下のコマンドで開発サーバーを起動します。
+   ```bash
+   npm run start
+   ```
+2. ブラウザで **[http://localhost:5173/](http://localhost:5173/)** を開きます。
+3. ファイルを選択し、スライダーで余白を調整して「PDFを生成」をクリックします。
 
 ### ドライラン（動作確認のみ）
 
@@ -55,14 +78,19 @@ python generate_monthly_report.py --dry-run
 
 ## フォルダ構成
 
-- `generate_monthly_report.py`: メインスクリプト
+- `generate_monthly_report.py`: 月報生成メインスクリプト（Python）
 - `Prompt.md`: Geminiへの詳細な指示プロンプト
-- `.env`: APIキー設定ファイル（作成が必要）
+- `server/`: PDF変換用バックエンドサーバー（Express/Puppeteer）
+- `src/`: PDF変換用フロントエンド画面（React/Vite）
+- `scripts/`: 
+    - `md-to-pdf-cli.js`: コマンドライン用PDF変換スクリプト
+- `package.json`: Node.js依存関係および実行スクリプトの定義
 - `Archive/`: 処理済みファイル保存用（自動作成）
-- `*.xlsx`: 読み込み対象の日報Excelファイル
+- `.env`: APIキー等の設定ファイル
 - `README.md`: 本ファイル
 
 ## 注意事項
 
-- **Gemini API (無料枠)** での利用を想定しており、モデルは高速な `gemini-2.0-flash` を使用しています。
-- Excelファイルのデータ量（文字数）が極端に多い場合、APIのトークン制限に達する可能性がありますが、標準的な1ヶ月分（約10万文字程度）であれば問題なく処理可能です。
+- **Node.jsのインストール**: PDF変換機能を利用するには、Node.js (v18以上推奨) が必要です。初回利用前に `npm install` を実行してください。
+- **Gemini API (無料枠)**: モデルは高速な `gemini-3-flash-preview` を使用しています。
+- **改ページなしPDF**: Puppeteerを使用してコンテンツの高さに合わせた1ページ構成のPDFを生成します。

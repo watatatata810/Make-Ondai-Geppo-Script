@@ -1,3 +1,8 @@
 /.env
 *.xlsx
 *キャンパス.md
+node_modules
+dist
+.DS_Store
+*.log
+*キャンパス.pdf
