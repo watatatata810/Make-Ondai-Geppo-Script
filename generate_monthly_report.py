@@ -100,7 +100,7 @@ def main():
             match = re.search(r"【(\d{4}年\d{2}月)】", file_path)
             period = match.group(1) if match else "月報"
             
-            output_filename = f"{period}度_ホール業務月報_{campus_name}.md"
+            output_filename = f"{period}_{campus_name}_ホール業務実施報告書.md"
             with open(output_filename, "w", encoding="utf-8") as f:
                 f.write(report_content)
             print(f"Successfully generated: {output_filename}")

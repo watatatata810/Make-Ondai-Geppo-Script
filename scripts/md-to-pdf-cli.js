@@ -75,7 +75,7 @@ async function convertMdToPdf(filePath, padding = 40) {
     });
 
     const pdfPath = filePath.replace('.md', '.pdf');
-    
+
     await page.pdf({
       path: pdfPath,
       width: `${dimensions.width}px`,
@@ -94,19 +94,19 @@ async function convertMdToPdf(filePath, padding = 40) {
 }
 
 async function main() {
-  // Find all files ending in "キャンパス.md"
+  // Find all files ending in "_ホール業務実施報告書.md"
   const files = await fs.readdir(rootDir);
-  const targetFiles = files.filter(f => f.endsWith('キャンパス.md'));
+  const targetFiles = files.filter(f => f.endsWith('_ホール業務実施報告書.md'));
 
   if (targetFiles.length === 0) {
-    console.log('No matching Markdown files found (*キャンパス.md).');
+    console.log('No matching Markdown files found (*_ホール業務実施報告書.md).');
     return;
   }
 
   for (const file of targetFiles) {
     await convertMdToPdf(path.join(rootDir, file));
   }
-  
+
   console.log('\nAll conversions completed.');
 }
 
