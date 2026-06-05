@@ -93,4 +93,5 @@ python generate_monthly_report.py --dry-run
 
 - **Node.jsのインストール**: PDF変換機能を利用するには、Node.js (v18以上推奨) が必要です。初回利用前に `npm install` を実行してください。
 - **Gemini API (無料枠)**: モデルは高速な `gemini-3-flash-preview` を使用しています。
+- **Excelファイルの制限**: Excelファイルのデータ量（文字数）が極端に多い場合、APIのトークン制限に達する可能性がありますが、標準的な1ヶ月分（約10万文字程度）であれば問題なく処理可能です。
 - **改ページなしPDF**: Puppeteerを使用してコンテンツの高さに合わせた1ページ構成のPDFを生成します。
