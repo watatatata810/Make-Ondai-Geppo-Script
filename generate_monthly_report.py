@@ -25,13 +25,13 @@ def load_config():
 def extract_excel_data(file_path):
     """Extract all sheets from an Excel file and convert to a text format."""
     print(f"Extracting data from: {file_path}")
-    xl = pd.ExcelFile(file_path)
     combined_text = []
     
-    for sheet_name in xl.sheet_names:
-        df = pd.read_excel(file_path, sheet_name=sheet_name)
-        sheet_text = df.fillna("").to_csv(index=False)
-        combined_text.append(f"--- SHEET: {sheet_name} ---\n{sheet_text}\n")
+    with pd.ExcelFile(file_path) as xl:
+        for sheet_name in xl.sheet_names:
+            df = pd.read_excel(xl, sheet_name=sheet_name)
+            sheet_text = df.fillna("").to_csv(index=False)
+            combined_text.append(f"--- SHEET: {sheet_name} ---\n{sheet_text}\n")
     
     return "\n".join(combined_text)
 
@@ -39,10 +39,10 @@ def generate_report(client, prompt_template, excel_data, campus_name):
     """Call Gemini API using google-genai SDK to generate the report."""
     full_prompt = f"{prompt_template}\n\n### DATA FROM EXCEL ({campus_name})\n{excel_data}"
     
-    print(f"Calling Gemini API (gemini-3-flash-preview) for {campus_name}...")
+    print(f"Calling Gemini API (gemini-3.5-flash) for {campus_name}...")
     try:
         response = client.models.generate_content(
-            model='gemini-3-flash-preview',
+            model='gemini-3.5-flash',
             contents=full_prompt
         )
         return response.text
