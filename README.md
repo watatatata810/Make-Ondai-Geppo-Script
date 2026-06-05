@@ -39,7 +39,7 @@ GEMINI_API_KEY=あなたのAPIキーをここに記入
 ターミナル（PowerShell等）を開き、本フォルダで以下のコマンドを実行します。
 
 ```bash
-python generate_monthly_report.py
+python scripts/generate_monthly_report.py
 ```
 
 実行が完了すると、フォルダ内に新しい Markdown 形式の月報が生成されます。
@@ -73,16 +73,18 @@ npm run convert
 APIを呼び出さずに、データの抽出が正しく行われているか、送信されるプロンプトのサイズ（文字数）を確認したい場合に使用します。
 
 ```bash
-python generate_monthly_report.py --dry-run
+python scripts/generate_monthly_report.py --dry-run
 ```
 
 ## フォルダ構成
 
-- `generate_monthly_report.py`: 月報生成メインスクリプト（Python）
+- `Generate_Monthly_Report.bat`: 月報生成・サーバー起動・ブラウザ表示の一括起動バッチ
 - `Prompt.md`: Geminiへの詳細な指示プロンプト
 - `server/`: PDF変換用バックエンドサーバー（Express/Puppeteer）
 - `src/`: PDF変換用フロントエンド画面（React/Vite）
 - `scripts/`: 
+    - `generate_monthly_report.py`: 月報生成メインスクリプト（Python）
+    - `Generate_Monthly_Report.ps1`: 一括起動用PowerShellスクリプト
     - `md-to-pdf-cli.js`: コマンドライン用PDF変換スクリプト
 - `package.json`: Node.js依存関係および実行スクリプトの定義
 - `Archive/`: 処理済みファイル保存用（自動作成）

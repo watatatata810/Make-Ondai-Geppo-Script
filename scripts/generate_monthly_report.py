@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import argparse
 import shutil
+import sys
 from google import genai
 from dotenv import load_dotenv
 
@@ -62,13 +63,13 @@ def main():
             client = load_config()
         except Exception as e:
             print(e)
-            return
+            sys.exit(1)
 
     # 2. Read Prompt.md
     prompt_path = "Prompt.md"
     if not os.path.exists(prompt_path):
         print(f"Error: {prompt_path} not found.")
-        return
+        sys.exit(1)
         
     with open(prompt_path, "r", encoding="utf-8") as f:
         prompt_template = f.read()
@@ -77,7 +78,7 @@ def main():
     excel_files = glob.glob("*.xlsx")
     if not excel_files:
         print("No Excel files (*.xlsx) found in the current directory.")
-        return
+        sys.exit(1)
 
     for file_path in excel_files:
         # Determine campus name from filename
@@ -109,16 +110,27 @@ def main():
             if not os.path.exists(ARCHIVE_DIR):
                 os.makedirs(ARCHIVE_DIR)
             
-            try:
-                # Move Excel source file
-                shutil.move(file_path, os.path.join(ARCHIVE_DIR, os.path.basename(file_path)))
-                print(f"Archived source: {file_path} -> {ARCHIVE_DIR}/")
-                
-                # Move generated Markdown report
-                shutil.move(output_filename, os.path.join(ARCHIVE_DIR, output_filename))
-                print(f"Archived report: {output_filename} -> {ARCHIVE_DIR}/")
-            except Exception as e:
-                print(f"Error archiving files: {e}")
+            # Windowsのファイルロック解放遅延に対応するリトライ処理
+            import time
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    # Move Excel source file
+                    shutil.move(file_path, os.path.join(ARCHIVE_DIR, os.path.basename(file_path)))
+                    print(f"Archived source: {file_path} -> {ARCHIVE_DIR}/")
+                    
+                    # Move generated Markdown report
+                    shutil.move(output_filename, os.path.join(ARCHIVE_DIR, output_filename))
+                    print(f"Archived report: {output_filename} -> {ARCHIVE_DIR}/")
+                    break
+                except PermissionError as e:
+                    if attempt < max_retries - 1:
+                        time.sleep(0.5)  # 0.5秒待って再試行
+                    else:
+                        print(f"Error archiving files (permission/lock issue): {e}")
+                except Exception as e:
+                    print(f"Error archiving files: {e}")
+                    break
 
 if __name__ == "__main__":
     main()
