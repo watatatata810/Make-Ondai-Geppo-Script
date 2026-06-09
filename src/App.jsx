@@ -242,7 +242,7 @@ function App() {
         // 履歴オブジェクトを作成して保存
         const now = new Date();
         const formattedDate = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        
+
         const newReport = {
           id: Date.now().toString(),
           filename: fileInfo.filename,
@@ -299,9 +299,13 @@ function App() {
         <h1>ホール業務月報ジェネレーター</h1>
         <div className="steps-indicator">
           <span className={step >= 1 ? 'active' : ''}>1. 設定</span>
-          <span className="divider"></span>
+          <svg className="step-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
           <span className={step >= 2 ? 'active' : ''}>2. ファイル入力</span>
-          <span className="divider"></span>
+          <svg className="step-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
           <span className={step >= 3 ? 'active' : ''}>3. 編集＆出力</span>
         </div>
       </div>
@@ -328,7 +332,7 @@ function App() {
               className="input-field"
               style={{ flex: 1 }}
             />
-            <button className="btn" onClick={handleSaveApiKey}>保存して次へ</button>
+            <button className="btn primary-btn" onClick={handleSaveApiKey}>保存して次へ</button>
           </div>
         </div>
       )}
@@ -343,7 +347,7 @@ function App() {
                 value={selectedModel}
                 onChange={handleModelChange}
                 className="input-field"
-                style={{ padding: '8px 32px 8px 12px', appearance: 'auto' }}
+                style={{ padding: '8px 32px 8px 16px', appearance: 'auto' }}
               >
                 {availableModels.map(m => (
                   <option key={m} value={m}>{m}</option>
@@ -375,7 +379,7 @@ function App() {
                   </button>
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '50px 20px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '24px', border: '1px solid var(--border)' }}>
+                <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--interactive-bg)', borderRadius: '8px', boxShadow: 'rgba(0, 0, 0, 0.3) 0px 8px 16px' }}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px' }}>
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -409,8 +413,8 @@ function App() {
                   </div>
                 ) : (
                   reportHistory.map(item => (
-                    <div 
-                      key={item.id} 
+                    <div
+                      key={item.id}
                       className="history-item"
                       onClick={() => handleSelectHistoryItem(item)}
                     >
@@ -420,7 +424,7 @@ function App() {
                         <span className="history-date">作成: {item.createdAt}</span>
                       </div>
                       <div className="history-actions">
-                        <button 
+                        <button
                           className="btn-delete"
                           onClick={(e) => handleDeleteHistoryItem(e, item.id)}
                           title="削除"
@@ -465,6 +469,13 @@ function App() {
 
           <div className="split-view">
             <div className="editor-pane">
+              <div className="pane-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path>
+                </svg>
+                <span>マークダウン編集エリア（編集結果がプレビューに即時反映されます）</span>
+              </div>
               <textarea
                 value={markdownContent}
                 onChange={(e) => setMarkdownContent(e.target.value)}
@@ -472,11 +483,22 @@ function App() {
                 spellCheck="false"
               />
             </div>
-            <div className="preview-pane" style={{ padding: `${padding}px` }}>
-              <div
-                className="markdown-body"
-                dangerouslySetInnerHTML={{ __html: marked(markdownContent) }}
-              />
+            <div className="preview-pane">
+              <div className="pane-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                  <path d="M6 9V2h12v7"></path>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                  <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                <span>印刷プレビュー (A4想定)</span>
+              </div>
+              <div className="preview-container">
+                <div
+                  className="markdown-body"
+                  style={{ padding: `${padding}px` }}
+                  dangerouslySetInnerHTML={{ __html: marked(markdownContent) }}
+                />
+              </div>
             </div>
           </div>
 
@@ -504,12 +526,12 @@ function App() {
                 </p>
               </div>
               {isCustomPrompt && (
-                <span style={{ fontSize: '0.8rem', background: 'rgba(99, 102, 241, 0.2)', color: 'var(--primary)', padding: '4px 8px', borderRadius: '6px' }}>
+                <span style={{ fontSize: '0.8rem', background: 'rgba(30, 215, 96, 0.15)', color: 'var(--primary)', padding: '6px 12px', borderRadius: '9999px', fontWeight: 700 }}>
                   カスタム適用中
                 </span>
               )}
             </div>
-            
+
             <div className="modal-body">
               <textarea
                 value={promptText}
@@ -519,26 +541,26 @@ function App() {
                 placeholder="プロンプトを入力してください..."
               />
             </div>
-            
+
             <div className="modal-footer">
-              <button 
-                className="btn btn-danger" 
+              <button
+                className="btn btn-danger"
                 onClick={handleResetPrompt}
                 disabled={loading}
               >
                 デフォルトに戻す
               </button>
-              
+
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button 
-                  className="btn" 
+                <button
+                  className="btn"
                   onClick={() => setIsPromptModalOpen(false)}
                   disabled={loading}
                 >
                   キャンセル
                 </button>
-                <button 
-                  className="btn primary-btn" 
+                <button
+                  className="btn primary-btn"
                   onClick={handleSavePrompt}
                   disabled={loading}
                 >

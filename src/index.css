@@ -1,34 +1,36 @@
 :root {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --bg: #0f172a;
-  --card-bg: rgba(30, 41, 59, 0.7);
-  --input-bg: rgba(15, 23, 42, 0.5);
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: rgba(255, 255, 255, 0.1);
-  --editor-bg: #1e1e1e;
+  --bg: #121212;
+  --card-bg: #181818;
+  --interactive-bg: #1f1f1f;
+  --interactive-hover: #2a2a2a;
+  --primary: #1ed760;
+  --primary-hover: #1db954;
+  --text-base: #ffffff;
+  --text-muted: #b3b3b3;
+  --border: #282828;
+  --border-gray: #4d4d4d;
+  --light-border: #7c7c7c;
+  --editor-bg: #121212;
+  --error: #f3727f;
+  --warning: #ffa42b;
+  --info: #539df5;
+  --success: #1ed760;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'SpotifyMixUI', 'Helvetica Neue', helvetica, arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
   background-color: var(--bg);
-  color: var(--text);
-  background-image:
-    radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 50%);
+  color: var(--text-base);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
   max-width: 4000px;
-  /* 1200pxから拡張し、画面を広く使えるように */
   width: 95%;
-  /* 画面幅に合わせて伸縮するように設定 */
   margin: 0 auto;
-  padding: 30px 20px;
-  /* 上下の余白も少し削って高さを確保 */
+  padding: 24px 20px;
   height: 100vh;
   box-sizing: border-box;
   display: flex;
@@ -39,88 +41,97 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1;
+  overflow: hidden;
 }
 
 .header {
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .header h1 {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 20px;
-  background: linear-gradient(to right, #818cf8, #c084fc);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--text-base);
+  letter-spacing: -0.5px;
 }
 
 .steps-indicator {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 0.9rem;
+  gap: 8px;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
-.steps-indicator span.active {
-  color: var(--text);
-  font-weight: 600;
-  background: rgba(99, 102, 241, 0.2);
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+.steps-indicator span {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: var(--interactive-bg);
+  color: var(--text-base);
+  font-weight: 700;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.divider {
-  height: 1px;
-  width: 40px;
-  background: var(--border);
+.steps-indicator span.active {
+  background: var(--text-base);
+  color: var(--bg);
+}
+
+.step-arrow {
+  color: var(--text-muted);
+  opacity: 0.5;
+  flex-shrink: 0;
+  display: block;
 }
 
 .section {
   background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 40px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  margin-bottom: 32px;
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 24px;
+  margin-bottom: 24px;
 }
 
 .label {
   display: block;
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
   margin-bottom: 16px;
+  color: var(--text-base);
 }
 
 .input-field {
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 12px 16px;
-  border-radius: 12px;
-  font-size: 1rem;
+  background: var(--interactive-bg);
+  border: none;
+  color: var(--text-base);
+  padding: 12px 20px;
+  border-radius: 9999px;
+  font-size: 0.9rem;
   outline: none;
-  transition: border-color 0.2s;
+  box-shadow: rgb(18, 18, 18) 0px 1px 0px, rgb(124, 124, 124) 0px 0px 0px 1px inset;
+  transition: box-shadow 0.2s;
+  font-family: inherit;
 }
 
 .input-field:focus {
-  border-color: var(--primary);
+  box-shadow: rgb(18, 18, 18) 0px 1px 0px, var(--primary) 0px 0px 0px 2px inset;
 }
 
 .drop-zone {
-  border: 2px dashed var(--border);
-  border-radius: 24px;
-  padding: 60px 20px;
+  border: 1px dashed var(--border-gray);
+  border-radius: 8px;
+  padding: 48px 20px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.01);
   transition: all 0.2s;
+  cursor: pointer;
 }
 
 .drop-zone:hover {
   border-color: var(--primary);
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(30, 215, 96, 0.05);
 }
 
 .editor-section {
@@ -128,19 +139,18 @@ body {
   flex-direction: column;
   flex: 1;
   background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 24px;
 }
 
 .editor-header {
-  padding: 20px 30px;
+  padding: 16px 24px;
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #151515;
 }
 
 .split-view {
@@ -159,7 +169,7 @@ body {
 .markdown-textarea {
   flex: 1;
   background: var(--editor-bg);
-  color: #d4d4d4;
+  color: #e0e0e0;
   border: none;
   padding: 20px;
   font-family: 'Consolas', 'Monaco', monospace;
@@ -171,60 +181,181 @@ body {
 
 .preview-pane {
   flex: 1;
-  background: white;
-  color: black;
+  background: #222222;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-container {
+  flex: 1;
   overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px;
+}
+
+.pane-header {
+  padding: 12px 20px;
+  background: #151515;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  display: flex;
+  align-items: center;
+}
+
+/* プレビュー内のA4用紙風コンテナ */
+.markdown-body {
+  background: white;
+  color: #24292e;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* PDF/印刷結果のスタイルとプレビューでの忠実な再現 */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #1f2328;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #d0d7de;
+  margin-top: 0;
+}
+
+.markdown-body h2 {
+  font-size: 1.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.markdown-body h3 {
+  font-size: 1.25em;
+}
+
+.markdown-body p,
+.markdown-body li {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #24292e;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid #d0d7de;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.markdown-body th {
+  background-color: #f6f8fa;
+  font-weight: 600;
+}
+
+.markdown-body tr:nth-child(even) {
+  background-color: #f6f8fa;
 }
 
 .footer-actions {
-  padding: 20px 30px;
+  padding: 16px 24px;
   border-top: 1px solid var(--border);
+  background: #151515;
 }
 
 .btn {
-  background: var(--card-bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
+  background: var(--interactive-bg);
+  color: var(--text-base);
+  border: 1px solid var(--light-border);
+  padding: 10px 24px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--interactive-hover);
+  border-color: var(--text-base);
+  transform: scale(1.04);
 }
 
 .primary-btn {
   background: var(--primary);
-  color: white;
+  color: #121212;
   border: none;
 }
 
 .primary-btn:hover:not(:disabled) {
   background: var(--primary-hover);
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+  box-shadow: none;
 }
 
 .btn-text {
   background: transparent;
   color: var(--text-muted);
   border: none;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
   cursor: pointer;
+  transition: color 0.2s;
+  padding: 8px 16px;
 }
 
 .btn-text:hover {
-  color: var(--text);
-  text-decoration: underline;
+  color: var(--text-base);
+  text-decoration: none;
 }
 
 .btn:disabled,
 .primary-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none !important;
 }
 
 .slider-group {
@@ -235,25 +366,27 @@ body {
 
 input[type="range"] {
   accent-color: var(--primary);
+  cursor: pointer;
 }
 
 .status {
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
   margin-bottom: 20px;
 }
 
 .status.success {
-  background: rgba(34, 197, 94, 0.1);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: rgba(30, 215, 96, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(30, 215, 96, 0.2);
 }
 
 .status.error {
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(243, 114, 127, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(243, 114, 127, 0.2);
 }
 
 /* Modal Overlay & Contents */
@@ -263,8 +396,8 @@ input[type="range"] {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -273,41 +406,41 @@ input[type="range"] {
 }
 
 .modal-content {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 24px;
+  background: var(--card-bg);
+  border-radius: 8px;
   width: 90vw;
-  max-width: 1400px;
+  max-width: 1200px;
   height: 80vh;
-  max-height: 900px;
+  max-height: 800px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
   overflow: hidden;
-  animation: modalFadeIn 0.3s ease;
+  animation: modalFadeIn 0.3s cubic-bezier(0.3, 0, 0, 1);
 }
 
 @keyframes modalFadeIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
 .modal-header {
-  padding: 24px 32px;
+  padding: 24px;
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #151515;
 }
 
 .modal-body {
-  padding: 32px;
+  padding: 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -318,9 +451,9 @@ input[type="range"] {
 .prompt-textarea {
   flex: 1;
   background: var(--editor-bg);
-  color: #d4d4d4;
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  color: #e0e0e0;
+  border: none;
+  border-radius: 4px;
   padding: 20px;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 14px;
@@ -328,28 +461,31 @@ input[type="range"] {
   resize: none;
   outline: none;
   overflow-y: auto;
+  box-shadow: rgb(18, 18, 18) 0px 1px 0px, rgb(124, 124, 124) 0px 0px 0px 1px inset;
 }
 
 .prompt-textarea:focus {
-  border-color: var(--primary);
+  box-shadow: rgb(18, 18, 18) 0px 1px 0px, var(--primary) 0px 0px 0px 2px inset;
 }
 
 .modal-footer {
-  padding: 24px 32px;
+  padding: 24px;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #151515;
 }
 
 .btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: var(--interactive-bg);
+  color: var(--error);
+  border: 1px solid var(--error);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(243, 114, 127, 0.1);
+  border-color: var(--error);
 }
 
 /* Step 2 Grid Layout */
@@ -367,22 +503,22 @@ input[type="range"] {
 }
 
 .step2-right {
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid var(--border);
-  border-radius: 24px;
+  background: var(--card-bg);
+  border-radius: 8px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   height: 380px;
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 8px 16px;
 }
 
 .history-title {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 16px 0;
-  color: var(--text);
-  border-left: 3px solid var(--primary);
-  padding-left: 10px;
+  color: var(--text-base);
+  border-left: 4px solid var(--primary);
+  padding-left: 12px;
 }
 
 .history-list {
@@ -390,7 +526,7 @@ input[type="range"] {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   padding-right: 4px;
 }
 
@@ -401,27 +537,25 @@ input[type="range"] {
   justify-content: center;
   height: 100%;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-align: center;
   gap: 12px;
 }
 
 .history-item {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 18px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .history-item:hover {
-  background: rgba(99, 102, 241, 0.05);
-  border-color: rgba(99, 102, 241, 0.3);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .history-info {
@@ -433,9 +567,9 @@ input[type="range"] {
 }
 
 .history-campus {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
-  color: var(--text);
+  color: var(--text-base);
 }
 
 .history-filename {
@@ -448,7 +582,7 @@ input[type="range"] {
 
 .history-date {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .history-actions {
@@ -462,16 +596,16 @@ input[type="range"] {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 6px;
-  border-radius: 8px;
+  padding: 8px;
+  border-radius: 50%;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .btn-delete:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--error);
 }
