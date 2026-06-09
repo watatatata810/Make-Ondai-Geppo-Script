@@ -2,6 +2,7 @@
   "name": "md-to-pdf-gui",
   "version": "1.0.0",
   "description": "Markdown to Single-Page PDF Converter with GUI",
+  "author": "Wataru Sakamoto",
   "main": "electron/main.js",
   "type": "module",
   "scripts": {
@@ -36,6 +37,7 @@
   "build": {
     "appId": "com.example.md-to-pdf-gui",
     "productName": "Make-Ondai-Geppo",
+    "copyright": "Copyright © 2026 Wataru Sakamoto. All rights reserved.",
     "directories": {
       "output": "release"
     },
@@ -47,6 +49,14 @@
     ],
     "win": {
       "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Make-Ondai-Geppo",
+      "license": "LICENSE.txt"
     }
   }
 }
