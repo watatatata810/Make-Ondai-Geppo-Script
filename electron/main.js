@@ -190,7 +190,7 @@ ipcMain.handle('generate-markdown', async (event, { filePath, campusName }) => {
 
 // PDF Generation (Using Electron Native printToPDF)
 ipcMain.handle('generate-pdf', async (event, { markdownContent, padding }) => {
-  const tempFilePath = path.join(rootDir, 'temp_print.html');
+  const tempFilePath = path.join(app.getPath('temp'), `temp_print_${Date.now()}.html`);
   try {
     const htmlContent = marked(markdownContent);
     const fullHtml = `
