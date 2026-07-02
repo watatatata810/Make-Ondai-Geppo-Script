@@ -1,6 +1,6 @@
 {
   "name": "md-to-pdf-gui",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Markdown to Single-Page PDF Converter with GUI",
   "author": "Wataru Sakamoto",
   "main": "electron/main.js",

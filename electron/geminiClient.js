@@ -43,7 +43,12 @@ export async function generateReport(apiKey, promptTemplate, excelData, campusNa
   // Initialize the official SDK
   const ai = new GoogleGenAI({ apiKey: apiKey });
 
-  const fullPrompt = `${promptTemplate}\n\n### DATA FROM EXCEL (${campusName})\n${excelData}`;
+  // 実行当日の日付を取得してプロンプトにコンテキストとして付与する
+  const today = new Date();
+  const formattedDate = `${today.getFullYear()}年${String(today.getMonth() + 1).padStart(2, '0')}月${String(today.getDate()).padStart(2, '0')}日`;
+  const systemContext = `【重要: システム情報】\nプログラムが実行されている当日の日付は「${formattedDate}」です。プロンプト内の「実行当日の年月日」にはこの日付を使用してください。\n\n`;
+
+  const fullPrompt = `${systemContext}${promptTemplate}\n\n### DATA FROM EXCEL (${campusName})\n${excelData}`;
 
   console.log(`Calling Gemini API (${modelName}) for ${campusName}...`);
 

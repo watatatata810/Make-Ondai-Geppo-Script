@@ -276,7 +276,9 @@ function App() {
       const genResult = await window.electronAPI.generatePdf(markdownContent, padding);
       if (genResult.success) {
         // 2. Save PDF
-        const defaultName = fileInfo.filename.replace('.xlsx', '_月報.pdf');
+        const yearMonthMatch = fileInfo.filename.match(/(\d{4}年\d{1,2}月)/);
+        const yearMonth = yearMonthMatch ? yearMonthMatch[1] + '_' : '';
+        const defaultName = `${yearMonth}${fileInfo.campusName}_ホール業務実施報告書.pdf`;
         const saveResult = await window.electronAPI.savePdf(genResult.pdfBuffer, defaultName);
 
         if (saveResult.success) {
