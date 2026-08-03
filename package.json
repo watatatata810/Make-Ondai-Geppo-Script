@@ -1,5 +1,6 @@
 {
   "name": "md-to-pdf-gui",
+  "productName": "Make-Ondai-Geppo",
   "version": "1.0.2",
   "description": "Markdown to Single-Page PDF Converter with GUI",
   "author": "Wataru Sakamoto",
@@ -15,15 +16,13 @@
   },
   "dependencies": {
     "@google/genai": "^2.8.0",
-    "cors": "^2.8.5",
+    "dompurify": "^3.4.12",
     "electron-store": "^11.0.2",
-    "express": "^4.19.2",
     "fs-extra": "^11.2.0",
     "marked": "^12.0.2",
-    "puppeteer": "^22.6.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
@@ -35,7 +34,7 @@
     "vite": "^5.3.1"
   },
   "build": {
-    "appId": "com.example.md-to-pdf-gui",
+    "appId": "com.watatatata810.make-ondai-geppo",
     "productName": "Make-Ondai-Geppo",
     "copyright": "Copyright © 2026 Wataru Sakamoto. All rights reserved.",
     "directories": {
@@ -48,7 +47,8 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,

@@ -1,22 +1,28 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // APIキー関連
   getApiKey: () => ipcRenderer.invoke('get-api-key'),
   setApiKey: (key) => ipcRenderer.invoke('set-api-key', key),
-  
+
   // モデル管理関連
   getAvailableModels: (apiKey) => ipcRenderer.invoke('get-available-models', apiKey),
   getSelectedModel: () => ipcRenderer.invoke('get-selected-model'),
   setSelectedModel: (modelName) => ipcRenderer.invoke('set-selected-model', modelName),
-  
+
   // ファイル操作
   selectExcelFile: () => ipcRenderer.invoke('select-excel-file'),
   savePdf: (pdfBuffer, defaultName) => ipcRenderer.invoke('save-pdf', { pdfBuffer, defaultName }),
+  // Electron 32以降 File.path は廃止されたため、D&DでドロップされたFileオブジェクトから
+  // 実ファイルパスを取得するには webUtils.getPathForFile を使う必要がある
+  // （公式ドキュメント: https://www.electronjs.org/docs/latest/api/web-utils）。
+  getPathForFile: (file) => webUtils.getPathForFile(file),
   
   // 生成処理
   generateMarkdown: (filePath, campusName) => ipcRenderer.invoke('generate-markdown', { filePath, campusName }),
-  generatePdf: (markdownContent, padding) => ipcRenderer.invoke('generate-pdf', { markdownContent, padding }),
+  cancelGeneration: () => ipcRenderer.invoke('cancel-generation'),
+  // htmlContentはrenderer側で marked() -> DOMPurify.sanitize() 済みのHTML文字列
+  generatePdf: (htmlContent, padding) => ipcRenderer.invoke('generate-pdf', { htmlContent, padding }),
   
   // プロンプト管理
   getPrompt: () => ipcRenderer.invoke('get-prompt'),

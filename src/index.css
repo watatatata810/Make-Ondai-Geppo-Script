@@ -190,6 +190,7 @@ body {
 .preview-container {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -234,6 +235,8 @@ body {
   line-height: 1.25;
   color: #1f2328;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* PDF出力側（electron/main.js のPDF用HTMLテンプレート）と折り返し挙動を一致させる */
+  white-space: nowrap;
 }
 
 .markdown-body h1 {
@@ -281,6 +284,8 @@ body {
   border: 1px solid #d0d7de;
   padding: 8px 12px;
   font-size: 14px;
+  /* PDF出力側（electron/main.js のPDF用HTMLテンプレート）と折り返し挙動を一致させる */
+  white-space: nowrap;
 }
 
 .markdown-body th {
@@ -387,6 +392,12 @@ input[type="range"] {
   background: rgba(243, 114, 127, 0.1);
   color: var(--error);
   border: 1px solid rgba(243, 114, 127, 0.2);
+}
+
+.status.warning {
+  background: rgba(255, 164, 43, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(255, 164, 43, 0.2);
 }
 
 /* Modal Overlay & Contents */

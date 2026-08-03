@@ -14,7 +14,16 @@ import { GoogleGenAI } from '@google/genai';
  * Gemini APIのエラーを解析し、ユーザーフレンドリーな日本語メッセージに変換します。
  * 元のエラーメッセージもデバッグ用に末尾に付加します。
  */
-function handleGeminiError(error, context = 'API呼び出し') {
+function handleGeminiError(error, context = 'API呼び出し', signal) {
+  // タイムアウト/ユーザーキャンセルによる中断は、AbortSignalの状態から確実に判定する
+  // （SDKが投げるエラーの文言に依存すると、SDKのバージョン変化で誤判定しうるため）。
+  if (signal && signal.aborted) {
+    if (signal.reason === 'timeout') {
+      return new Error(`AIによる${context}がタイムアウトしました（10分経過しても応答がありませんでした）。しばらく時間を置いてから再度実行するか、画面右上から別のモデルを選択してお試しください。`);
+    }
+    return new Error(`${context}をキャンセルしました。`);
+  }
+
   const msg = error.message || String(error);
   let friendlyMessage = `AIによる${context}中に予期せぬエラーが発生しました。`;
 
@@ -25,7 +34,7 @@ function handleGeminiError(error, context = 'API呼び出し') {
   } else if (msg.includes('SAFETY') || msg.toLowerCase().includes('blocked') || msg.toLowerCase().includes('candidate')) {
     friendlyMessage = '安全性の判定（セーフティフィルター）により、コンテンツの生成が制限されました。Excel内のテキストやプロンプトの内容を見直してください。';
   } else if (msg.includes('503') || msg.toLowerCase().includes('service unavailable') || msg.toLowerCase().includes('overloaded') || error.status === 503) {
-    friendlyMessage = 'Gemini APIサーバーが一時的に混雑しています（503 Service Unavailable）。しばらく時間を置いてから再度実行するか、画面右上から別のモデル（例: gemini-3.1-flash-liteなど）を選択してお試しください。';
+    friendlyMessage = 'Gemini APIサーバーが一時的に混雑しています（503 Service Unavailable）。しばらく時間を置いてから再度実行するか、画面右上から別のモデルを選択してお試しください。';
   } else if (msg.includes('fetch failed') || msg.includes('ENOTFOUND') || msg.includes('EAI_AGAIN') || msg.toLowerCase().includes('connect')) {
     friendlyMessage = 'インターネット接続に失敗しました。ネットワーク環境やプロキシ、オフライン状態でないかをご確認ください。';
   } else if (msg.includes('not found') || msg.includes('404') || msg.toLowerCase().includes('model')) {
@@ -35,7 +44,11 @@ function handleGeminiError(error, context = 'API呼び出し') {
   return new Error(`${friendlyMessage}\n(詳細: ${msg})`);
 }
 
-export async function generateReport(apiKey, promptTemplate, excelData, campusName, modelName = 'gemini-3.1-flash-lite') {
+/**
+ * @param {AbortSignal} [signal] 呼び出し元(main.js)が生成したAbortControllerのsignal。
+ *   タイムアウト（10分）とユーザーによるキャンセルの両方が、このsignalのabortを通じて伝搬される。
+ */
+export async function generateReport(apiKey, promptTemplate, excelData, campusName, modelName = 'gemini-3.5-flash', signal) {
   if (!apiKey) {
     throw new Error('API key is required.');
   }
@@ -56,12 +69,16 @@ export async function generateReport(apiKey, promptTemplate, excelData, campusNa
     const response = await ai.models.generateContent({
       model: modelName,
       contents: fullPrompt,
+      // @google/genai v2.8のGenerateContentConfigはabortSignalを公式サポートしており
+      // (dist/genai.d.ts の GenerateContentConfig.abortSignal)、内部実装でも
+      // config.abortSignal がそのままHTTPリクエストのAbortControllerへ渡されることを確認済み。
+      config: signal ? { abortSignal: signal } : undefined,
     });
 
     return response.text;
   } catch (error) {
     console.error('Error calling Gemini API:', error);
-    throw handleGeminiError(error, '月報の生成');
+    throw handleGeminiError(error, '月報の生成', signal);
   }
 }
 
@@ -112,11 +129,12 @@ export async function getAvailableModels(apiKey) {
       return getVersion(b) - getVersion(a);
     });
 
-    // デフォルトモデルの決定: gemini-3.1-flash-liteがあればそれを最優先、次点で最新のflashモデル
-    const hasLite = geminiModels.includes('gemini-3.1-flash-lite');
-    const defaultModel = hasLite
-      ? 'gemini-3.1-flash-lite'
-      : (flashModels.length > 0 ? flashModels[0] : (geminiModels.length > 0 ? geminiModels[0] : 'gemini-3.1-flash-lite'));
+    // デフォルトモデルの決定: gemini-3.5-flashがあればそれを最優先、
+    // 無ければ従来どおり最新バージョンのflash系モデルにフォールバックする。
+    const hasGemini35Flash = geminiModels.includes('gemini-3.5-flash');
+    const defaultModel = hasGemini35Flash
+      ? 'gemini-3.5-flash'
+      : (flashModels.length > 0 ? flashModels[0] : (geminiModels.length > 0 ? geminiModels[0] : 'gemini-3.5-flash'));
 
     return {
       allModels: geminiModels,

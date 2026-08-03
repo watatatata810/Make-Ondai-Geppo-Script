@@ -11,3 +11,5 @@ dist
 /release
 /scratch
 *.pdf
+.serena/
+.claude/tmp/
