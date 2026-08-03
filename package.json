@@ -40,11 +40,20 @@
     "directories": {
       "output": "release"
     },
+    "electronLanguages": [
+      "ja",
+      "en-US"
+    ],
     "files": [
       "dist/**/*",
       "electron/**/*",
       "Prompt.md",
-      "package.json"
+      "package.json",
+      "!node_modules/react/**",
+      "!node_modules/react-dom/**",
+      "!node_modules/scheduler/**",
+      "!node_modules/dompurify/**",
+      "!node_modules/marked/**"
     ],
     "win": {
       "target": "nsis",
