@@ -41,6 +41,16 @@
 * 実終了を日報の値から変更した箇所は、編集画面上部の確認事項に根拠の行とともに表示されます。
 * プロンプト（`ClaudePrompt.md`）は Claude を選んだ状態で「プロンプト確認・編集」から変更できます。
 
+### 2''. アプリを開かずに月報を作る（CLI）
+Claude（サブスク）と同じ処理をコマンドで実行し、結果をアプリの履歴に登録できます（Node.js 20.19 以降）。
+
+```bash
+node scripts/make-report.mjs "【2026年11月】ホール業務日報_池袋キャンパス.xlsx" ike.json
+node scripts/add-to-history.mjs ike.json   # アプリを終了してから実行
+```
+
+`add-to-history.mjs` は書き込む前に設定ファイルの控え（`config.backup-<日時>.json`）を残します。
+
 ---
 
 ## 基本的な使い方
