@@ -39,7 +39,7 @@ function EditorPreview({
       {reportWarnings.length > 0 && (
         <div className="status warning" style={{ margin: '16px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
           <div>
-            <div style={{ marginBottom: '6px' }}>生成結果に、期待するフォーマットとの差異が見つかりました（内容は自動修正されていません。必要に応じて編集エリアで確認してください）:</div>
+            <div style={{ marginBottom: '6px' }}>生成時の確認事項があります（日報からの値の変更や、フォーマットとの差異。必要に応じて編集エリアで確認してください）:</div>
             <ul style={{ margin: 0, paddingLeft: '20px' }}>
               {reportWarnings.map((w, i) => <li key={i}>{w}</li>)}
             </ul>

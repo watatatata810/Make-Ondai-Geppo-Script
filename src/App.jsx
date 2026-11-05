@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { detectCampus } from './campusUtils';
+import { detectCampus, buildPdfFileName } from './campusUtils';
 import { markdownToSafeHtml } from './markdownUtils';
-import { useApiKeyModels } from './hooks/useApiKeyModels';
+import { useApiKeyModels, isClaudeModel } from './hooks/useApiKeyModels';
 import { useReportHistory } from './hooks/useReportHistory';
 import { usePromptEditor } from './hooks/usePromptEditor';
 import ApiKeySetup from './components/ApiKeySetup';
@@ -26,7 +26,9 @@ function App() {
     setApiKey,
     availableModels,
     selectedModel,
+    claudeAvailable,
     handleSaveApiKey,
+    handleUseClaudeOnly,
     handleModelChange
   } = useApiKeyModels({ setLoading, setStatus, setStep });
 
@@ -43,6 +45,7 @@ function App() {
     promptText,
     setPromptText,
     isCustomPrompt,
+    promptEngine,
     handleOpenPromptEditor,
     handleSavePrompt,
     handleResetPrompt
@@ -123,7 +126,12 @@ function App() {
     if (!window.electronAPI) return;
 
     setLoading(true);
-    setStatus({ type: '', message: 'Gemini AI が月報を生成中です...（最大10分。長時間かかる場合はキャンセルできます）' });
+    setStatus({
+      type: '',
+      message: isClaudeModel(selectedModel)
+        ? 'Claude（サブスク）が報告事項をまとめています...（通常20秒〜1分。最大10分、途中でキャンセルできます）'
+        : 'Gemini AI が月報を生成中です...（最大10分。長時間かかる場合はキャンセルできます）'
+    });
 
     try {
       const result = await window.electronAPI.generateMarkdown(fileInfo.filePath, resolvedCampusName);
@@ -185,9 +193,7 @@ function App() {
       const htmlContent = markdownToSafeHtml(markdownContent);
       const genResult = await window.electronAPI.generatePdf(htmlContent, padding);
       if (genResult.success) {
-        const yearMonthMatch = fileInfo.filename.match(/(\d{4}年\d{1,2}月)/);
-        const yearMonth = yearMonthMatch ? yearMonthMatch[1] + '_' : '';
-        const defaultName = `${yearMonth}${resolvedCampusName}_ホール業務実施報告書.pdf`;
+        const defaultName = buildPdfFileName(fileInfo.filename, markdownContent, resolvedCampusName);
         const saveResult = await window.electronAPI.savePdf(genResult.pdfBuffer, defaultName);
 
         if (saveResult.success) {
@@ -232,7 +238,13 @@ function App() {
       )}
 
       {step === 1 && (
-        <ApiKeySetup apiKey={apiKey} setApiKey={setApiKey} onSaveApiKey={handleSaveApiKey} />
+        <ApiKeySetup
+          apiKey={apiKey}
+          setApiKey={setApiKey}
+          onSaveApiKey={handleSaveApiKey}
+          claudeAvailable={claudeAvailable}
+          onUseClaudeOnly={handleUseClaudeOnly}
+        />
       )}
 
       {step === 2 && (
@@ -279,6 +291,7 @@ function App() {
         promptText={promptText}
         setPromptText={setPromptText}
         isCustomPrompt={isCustomPrompt}
+        promptEngine={promptEngine}
         loading={loading}
         onSave={handleSavePrompt}
         onCancel={() => setIsPromptModalOpen(false)}

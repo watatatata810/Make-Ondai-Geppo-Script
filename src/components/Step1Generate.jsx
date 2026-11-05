@@ -1,4 +1,5 @@
 import { CAMPUS_OPTIONS } from '../campusUtils';
+import { modelLabel } from '../hooks/useApiKeyModels';
 
 /**
  * Step2: エクセルファイルの選択/D&D、モデル選択、キャンパス手動選択、
@@ -26,11 +27,11 @@ function Step1Generate({
   onDeleteHistoryItem
 }) {
   return (
-    <div className="section">
+    <div className="section step2-section">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 className="label" style={{ margin: 0 }}>2. エクセルファイルの選択</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>モデル:</span>
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>AI:</span>
           <select
             value={selectedModel}
             onChange={onModelChange}
@@ -38,7 +39,7 @@ function Step1Generate({
             style={{ padding: '8px 32px 8px 16px', appearance: 'auto' }}
           >
             {availableModels.map(m => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>{modelLabel(m)}</option>
             ))}
           </select>
           <button className="btn" style={{ padding: '8px 16px', fontSize: '0.9rem' }} onClick={onOpenPromptEditor}>プロンプト確認・編集</button>

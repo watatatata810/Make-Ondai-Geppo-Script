@@ -11,48 +11,29 @@ function pad2(n) {
 }
 
 /**
- * SheetJS が cellDates:true で生成した Date インスタンスを、
- * 決定的な文字列表現に変換します。
+ * 日付/時刻書式のセルのシリアル値を、決定的な文字列表現に変換する（v1.1.x の Date 経由の方式と同じ出力）。
  *
- * - 時刻のみのセル → "HH:MM"（分単位に四捨五入、秒は出さない）
- * - 日付のみのセル → "YYYY/MM/DD"
- * - 日付+時刻のセル → "YYYY/MM/DD HH:MM"
+ * - 時刻のみ（シリアル値 < 2、つまり 1899 年扱い）→ "HH:MM"
+ * - 日付のみ → "YYYY/MM/DD"
+ * - 日付+時刻 → "YYYY/MM/DD HH:MM"
+ * 分単位に四捨五入する。Date を経由しないため実行環境のタイムゾーンに依存しない
+ * （Date 経由の方式は、Playwright から起動したこのアプリで時刻が 9 時間ずれた。2026-11-06）。
  *
- * SheetJS の cellDates はローカルタイムゾーンで解釈した暦日時と一致する
- * Date を返す（ローカルの getFullYear/getHours 等で取り出す必要があり、
- * UTC系メソッドと混ぜてはいけない）。
- * 時刻のみのセルは Excel/Lotus 起点日 (1899-12-30 付近) の Date になるため、
- * 年が 1899 以下であれば「時刻のみ」とみなす。
- *
- * @param {Date} date
+ * @param {number} serial
  * @returns {string}
  */
-function formatExcelDateCell(date) {
-  // 丸め判定（時刻のみ セル か否か）は、分丸めによる日跨ぎで年が変わる前の
-  // 元の値を基準にする。
-  const isTimeOnly = date.getFullYear() <= 1899;
+export function formatExcelSerialCell(serial) {
+  const isTimeOnly = serial < 2; // 0 = 1899-12-30, 1 = 1899-12-31
+  const totalMinutes = Math.round(serial * 1440);
+  const dayPart = Math.floor(totalMinutes / 1440);
+  const minutes = totalMinutes - dayPart * 1440;
+  const hh = pad2(Math.floor(minutes / 60));
+  const mm = pad2(minutes % 60);
+  if (isTimeOnly) return `${hh}:${mm}`;
 
-  // 分単位への四捨五入は epoch ミリ秒で行うことで、
-  // 秒・ミリ秒の繰り上がり（例: 08:59:59.999 → 09:00）を Date の正規化に任せる。
-  const roundedMs = Math.round(date.getTime() / 60000) * 60000;
-  const rounded = new Date(roundedMs);
-
-  const hh = pad2(rounded.getHours());
-  const mm = pad2(rounded.getMinutes());
-
-  if (isTimeOnly) {
-    return `${hh}:${mm}`;
-  }
-
-  const yyyy = rounded.getFullYear();
-  const MM = pad2(rounded.getMonth() + 1);
-  const dd = pad2(rounded.getDate());
-
-  const hasTime = rounded.getHours() !== 0 || rounded.getMinutes() !== 0;
-  if (hasTime) {
-    return `${yyyy}/${MM}/${dd} ${hh}:${mm}`;
-  }
-  return `${yyyy}/${MM}/${dd}`;
+  const d = XLSX.SSF.parse_date_code(dayPart);
+  const ymd = `${d.y}/${pad2(d.m)}/${pad2(d.d)}`;
+  return minutes !== 0 ? `${ymd} ${hh}:${mm}` : ymd;
 }
 
 /**
@@ -68,23 +49,35 @@ export function extractExcelData(filePath) {
 
   // Excelファイルをバッファとして読み込む
   const fileBuffer = fs.readFileSync(filePath);
-  // cellDates:true により、日付/時刻書式のセルは数値シリアル値ではなく
-  // JS Date インスタンスとして取得される（数値セル・文字列セルは影響を受けない）。
-  const workbook = XLSX.read(fileBuffer, { type: 'buffer', cellDates: true });
+  // 日付/時刻セルは JS の Date を経由せず、シリアル値（数値）と書式から直接文字列にする
+  // （formatExcelSerialCell 参照）。cellNF:true で各セルの表示書式 (cell.z) を取得する。
+  const workbook = XLSX.read(fileBuffer, { type: 'buffer', cellDates: false, cellNF: true });
 
   // すべてのシートを処理
   for (const sheetName of workbook.SheetNames) {
     const sheet = workbook.Sheets[sheetName];
+    if (!sheet['!ref']) {
+      combinedText.push(`--- SHEET: ${sheetName} ---\n\n`);
+      continue;
+    }
 
-    // シートのデータを二次元配列として取得 (空のセルも保持)
-    const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-
-    // 各行をカンマ区切りの文字列（CSV風）に変換
-    // 日付/時刻セル（Dateインスタンス）のみ決定的な文字列に変換し、
-    // 数値セル・文字列セルはそのまま維持する。
-    const csvRows = rawData.map(row =>
-      row.map(cell => (cell instanceof Date ? formatExcelDateCell(cell) : cell)).join(',')
-    );
+    // sheet_to_json({ header: 1, defval: "" }) と同じ範囲・並びで、空のセルも保持して二次元に並べる
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    const csvRows = [];
+    for (let r = range.s.r; r <= range.e.r; r++) {
+      const row = [];
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const cell = sheet[XLSX.utils.encode_cell({ r, c })];
+        if (!cell || cell.v === undefined || cell.v === null) {
+          row.push('');
+        } else if (cell.t === 'n' && cell.z && XLSX.SSF.is_date(cell.z)) {
+          row.push(formatExcelSerialCell(cell.v));
+        } else {
+          row.push(cell.v);
+        }
+      }
+      csvRows.push(row.join(','));
+    }
     const sheetText = csvRows.join('\n');
 
     // Python版と同じフォーマットで追加

@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAvailableModels: (apiKey) => ipcRenderer.invoke('get-available-models', apiKey),
   getSelectedModel: () => ipcRenderer.invoke('get-selected-model'),
   setSelectedModel: (modelName) => ipcRenderer.invoke('set-selected-model', modelName),
+  checkClaude: () => ipcRenderer.invoke('check-claude'),
 
   // ファイル操作
   selectExcelFile: () => ipcRenderer.invoke('select-excel-file'),
