@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { detectCampus } from './campusUtils';
+import { detectCampus, buildPdfFileName } from './campusUtils';
 import { markdownToSafeHtml } from './markdownUtils';
 import { useApiKeyModels, isClaudeModel } from './hooks/useApiKeyModels';
 import { useReportHistory } from './hooks/useReportHistory';
@@ -193,9 +193,7 @@ function App() {
       const htmlContent = markdownToSafeHtml(markdownContent);
       const genResult = await window.electronAPI.generatePdf(htmlContent, padding);
       if (genResult.success) {
-        const yearMonthMatch = fileInfo.filename.match(/(\d{4}年\d{1,2}月)/);
-        const yearMonth = yearMonthMatch ? yearMonthMatch[1] + '_' : '';
-        const defaultName = `${yearMonth}${resolvedCampusName}_ホール業務実施報告書.pdf`;
+        const defaultName = buildPdfFileName(fileInfo.filename, markdownContent, resolvedCampusName);
         const saveResult = await window.electronAPI.savePdf(genResult.pdfBuffer, defaultName);
 
         if (saveResult.success) {
