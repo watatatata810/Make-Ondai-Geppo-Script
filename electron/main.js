@@ -6,6 +6,9 @@ import Store from 'electron-store';
 import { extractExcelData } from './excelParser.js';
 import { generateReport, getAvailableModels } from './geminiClient.js';
 import { processGeneratedReport } from './reportNormalizer.js';
+import { parseDailyReport, dedupeReportParagraphs } from './dailyReportParser.js';
+import { buildClaudeInput, buildReportMarkdown, applyEndTimeCorrections } from './reportBuilder.js';
+import { runClaudeReport, resolveClaudePath, CLAUDE_MODELS } from './claudeClient.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -170,19 +173,42 @@ ipcMain.handle('select-excel-file', async () => {
   return { filePath, filename };
 });
 
-// Prompt Management
+// --- AIエンジンの切り替え ---
+// 選択モデルの保存キー 'gemini-selected-model' に、Claude の場合は 'claude:sonnet' のように
+// 接頭辞付きで保存する。プロンプトもエンジンごとに別ファイル・別の保存キーで管理する。
+const CLAUDE_MODEL_PREFIX = 'claude:';
+const PROMPT_FILES = { gemini: 'Prompt.md', claude: 'ClaudePrompt.md' };
+const CUSTOM_PROMPT_KEYS = { gemini: 'custom-prompt', claude: 'custom-prompt-claude' };
+
+function currentEngine() {
+  const model = store.get('gemini-selected-model') || '';
+  return model.startsWith(CLAUDE_MODEL_PREFIX) ? 'claude' : 'gemini';
+}
+
+async function readDefaultPrompt(engine) {
+  const promptPath = path.join(rootDir, PROMPT_FILES[engine]);
+  return (await fs.pathExists(promptPath)) ? fs.readFile(promptPath, 'utf-8') : '';
+}
+
+async function loadPrompt(engine) {
+  return store.get(CUSTOM_PROMPT_KEYS[engine]) || readDefaultPrompt(engine);
+}
+
+// Claude Code CLI が使えるか（claude.exe の有無のみ。ログイン状態は生成時に判定する）
+ipcMain.handle('check-claude', () => {
+  const claudePath = resolveClaudePath();
+  return { available: Boolean(claudePath), path: claudePath, models: CLAUDE_MODELS };
+});
+
+// Prompt Management（現在選択中のエンジンのプロンプトを扱う）
 ipcMain.handle('get-prompt', async () => {
   try {
-    const customPrompt = store.get('custom-prompt');
+    const engine = currentEngine();
+    const customPrompt = store.get(CUSTOM_PROMPT_KEYS[engine]);
     if (customPrompt) {
-      return { text: customPrompt, isCustom: true };
+      return { text: customPrompt, isCustom: true, engine };
     }
-    const promptPath = path.join(rootDir, 'Prompt.md');
-    if (await fs.pathExists(promptPath)) {
-      const text = await fs.readFile(promptPath, 'utf-8');
-      return { text, isCustom: false };
-    }
-    return { text: '', isCustom: false };
+    return { text: await readDefaultPrompt(engine), isCustom: false, engine };
   } catch (error) {
     console.error(error);
     return { text: '', isCustom: false, error: error.message };
@@ -191,11 +217,8 @@ ipcMain.handle('get-prompt', async () => {
 
 ipcMain.handle('save-prompt', async (event, text) => {
   try {
-    const promptPath = path.join(rootDir, 'Prompt.md');
-    let defaultText = '';
-    if (await fs.pathExists(promptPath)) {
-      defaultText = await fs.readFile(promptPath, 'utf-8');
-    }
+    const engine = currentEngine();
+    const defaultText = await readDefaultPrompt(engine);
 
     // 改行コード（CRLF/LF）と前後の空白を正規化して比較
     const normalizedText = text.replace(/\r\n/g, '\n').trim();
@@ -203,10 +226,10 @@ ipcMain.handle('save-prompt', async (event, text) => {
 
     let isCustom = true;
     if (normalizedText === normalizedDefault) {
-      store.delete('custom-prompt');
+      store.delete(CUSTOM_PROMPT_KEYS[engine]);
       isCustom = false;
     } else {
-      store.set('custom-prompt', text);
+      store.set(CUSTOM_PROMPT_KEYS[engine], text);
     }
     return { success: true, isCustom };
   } catch (error) {
@@ -217,8 +240,9 @@ ipcMain.handle('save-prompt', async (event, text) => {
 
 ipcMain.handle('reset-prompt', async () => {
   try {
-    store.delete('custom-prompt');
-    const promptPath = path.join(rootDir, 'Prompt.md');
+    const engine = currentEngine();
+    store.delete(CUSTOM_PROMPT_KEYS[engine]);
+    const promptPath = path.join(rootDir, PROMPT_FILES[engine]);
     if (await fs.pathExists(promptPath)) {
       const text = await fs.readFile(promptPath, 'utf-8');
       return { success: true, text };
@@ -267,23 +291,46 @@ ipcMain.handle('generate-markdown', async (event, { filePath, campusName }) => {
       throw new Error('指定されたファイルが見つかりません。ファイルが移動または削除された可能性があります。');
     }
 
-    const apiKey = getDecryptedApiKey();
-    if (!apiKey) throw new Error('APIキーが設定されていません。画面右上から設定してください。');
-
-    let promptTemplate = store.get('custom-prompt');
-    if (!promptTemplate) {
-      const promptPath = path.join(rootDir, 'Prompt.md');
-      if (!await fs.pathExists(promptPath)) throw new Error('Prompt.md が見つかりません。');
-      promptTemplate = await fs.readFile(promptPath, 'utf-8');
-    }
-    const excelData = extractExcelData(filePath);
-
     const modelName = store.get('gemini-selected-model') || 'gemini-3.5-flash';
 
     // タイムアウト（10分）とユーザーキャンセルの両方をこのAbortControllerに集約する
     controller = new AbortController();
     activeGenerationController = controller;
     timeoutId = setTimeout(() => controller.abort('timeout'), GENERATION_TIMEOUT_MS);
+
+    if (modelName.startsWith(CLAUDE_MODEL_PREFIX)) {
+      // Claude エンジン: 表と集計は日報から機械的に作り、報告事項と実終了の補正だけ Claude に任せる
+      const systemPrompt = await loadPrompt('claude');
+      if (!systemPrompt) throw new Error('ClaudePrompt.md が見つかりません。');
+      const parsed = parseDailyReport(filePath);
+      if (parsed.days.length === 0) throw new Error('日報のシートが見つかりませんでした。');
+      const input = buildClaudeInput(parsed, dedupeReportParagraphs(parsed.days), campusName);
+      let result;
+      try {
+        result = await runClaudeReport({
+          systemPrompt,
+          input,
+          model: modelName.slice(CLAUDE_MODEL_PREFIX.length),
+          signal: controller.signal,
+        });
+      } catch (error) {
+        if (controller.signal.aborted && controller.signal.reason === 'timeout') {
+          throw new Error('Claude による月報の生成がタイムアウトしました（10分経過しても応答がありませんでした）。');
+        }
+        throw error;
+      }
+      const notes = applyEndTimeCorrections(parsed, result.endTimeCorrections);
+      const built = buildReportMarkdown(parsed, result.reports, { campusName });
+      const { markdown, warnings } = processGeneratedReport(built);
+      return { success: true, markdown, warnings: [...notes, ...warnings] };
+    }
+
+    const apiKey = getDecryptedApiKey();
+    if (!apiKey) throw new Error('APIキーが設定されていません。画面右上から設定してください。');
+
+    const promptTemplate = await loadPrompt('gemini');
+    if (!promptTemplate) throw new Error('Prompt.md が見つかりません。');
+    const excelData = extractExcelData(filePath);
 
     const rawMarkdown = await generateReport(apiKey, promptTemplate, excelData, campusName, modelName, controller.signal);
 

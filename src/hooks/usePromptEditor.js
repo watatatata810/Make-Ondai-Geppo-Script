@@ -5,6 +5,7 @@ export function usePromptEditor({ setLoading, setStatus }) {
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [promptText, setPromptText] = useState('');
   const [isCustomPrompt, setIsCustomPrompt] = useState(false);
+  const [promptEngine, setPromptEngine] = useState('gemini');
 
   const handleOpenPromptEditor = async () => {
     if (!window.electronAPI) return;
@@ -13,6 +14,7 @@ export function usePromptEditor({ setLoading, setStatus }) {
       const result = await window.electronAPI.getPrompt();
       setPromptText(result.text);
       setIsCustomPrompt(result.isCustom);
+      setPromptEngine(result.engine || 'gemini');
       setIsPromptModalOpen(true);
     } catch (err) {
       console.error('プロンプトの読み込みに失敗しました:', err);
@@ -71,6 +73,7 @@ export function usePromptEditor({ setLoading, setStatus }) {
     promptText,
     setPromptText,
     isCustomPrompt,
+    promptEngine,
     handleOpenPromptEditor,
     handleSavePrompt,
     handleResetPrompt

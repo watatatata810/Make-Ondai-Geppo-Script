@@ -4,6 +4,7 @@ function PromptModal({
   promptText,
   setPromptText,
   isCustomPrompt,
+  promptEngine,
   loading,
   onSave,
   onCancel,
@@ -18,7 +19,9 @@ function PromptModal({
           <div>
             <h3 className="label" style={{ margin: 0 }}>AIプロンプトの確認・編集</h3>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Geminiに渡す指示内容です。変更は次回以降の実行にも引き継がれます。
+              {promptEngine === 'claude'
+                ? 'Claude（サブスク）に渡す指示内容です。Claude は「4．報告事項まとめ」と実終了の補正だけを担当し、表と集計は日報から自動で作ります。変更は次回以降の実行にも引き継がれます。'
+                : 'Geminiに渡す指示内容です。変更は次回以降の実行にも引き継がれます。'}
             </p>
           </div>
           {isCustomPrompt && (
