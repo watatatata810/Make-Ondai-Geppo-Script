@@ -27,7 +27,7 @@ function Step1Generate({
   onDeleteHistoryItem
 }) {
   return (
-    <div className="section">
+    <div className="section step2-section">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 className="label" style={{ margin: 0 }}>2. エクセルファイルの選択</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
