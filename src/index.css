@@ -190,9 +190,11 @@ body {
 .preview-container {
   flex: 1;
   overflow-y: auto;
-  overflow-x: auto;
+  /* 用紙は EditorPreview がペイン幅に収まるよう縮小するので横スクロールは出さない
+     （縮小前のレイアウト幅で空の横スクロールバーが出るのを防ぐ） */
+  overflow-x: hidden;
   display: flex;
-  justify-content: center;
+  justify-content: safe center;
   align-items: flex-start;
   padding: 24px;
 }
@@ -216,10 +218,19 @@ body {
   color: #24292e;
   border-radius: 4px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  width: 100%;
-  max-width: 800px;
+  /* PDF出力側（electron/main.js のPDF用HTMLテンプレート）と同じく、最小 800px で内容（nowrap の表）に合わせて広がる */
+  /* 外枠の幅に左右されないよう max-content（本文は p/li の max-width で 800px に折り返す） */
+  width: max-content;
+  min-width: 800px;
   box-sizing: border-box;
   text-align: left;
+  /* ペインに収まるよう EditorPreview が scale を掛ける */
+  transform-origin: top left;
+}
+
+/* 縮小後の用紙の大きさを持つ枠（スクロール範囲と中央寄せ用） */
+.preview-scaler {
+  flex-shrink: 0;
 }
 
 /* PDF/印刷結果のスタイルとプレビューでの忠実な再現 */
@@ -262,6 +273,8 @@ body {
   line-height: 1.6;
   color: #24292e;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* PDF出力側と同じく、用紙が広がっても本文の折り返し幅は 800px に保つ */
+  max-width: 800px;
   margin-top: 0;
   margin-bottom: 16px;
 }
