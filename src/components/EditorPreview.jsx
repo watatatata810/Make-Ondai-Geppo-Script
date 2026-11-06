@@ -1,4 +1,37 @@
+import { useLayoutEffect, useRef, useState } from 'react';
 import { markdownToSafeHtml } from '../markdownUtils';
+
+/**
+ * 用紙（PDF と同じ幅で描いた .markdown-body）をペインの幅に収まるよう縮小表示する。
+ * transform は offsetWidth/offsetHeight に影響しないので、元の大きさを測ってから倍率を決め、
+ * 外側の枠に縮小後の大きさを与えてスクロール範囲を合わせる。
+ */
+function useFitToWidth() {
+  const containerRef = useRef(null);
+  const pageRef = useRef(null);
+  const [fit, setFit] = useState({ scale: 1, width: 0, height: 0 });
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const page = pageRef.current;
+    if (!container || !page) return undefined;
+    const update = () => {
+      const style = getComputedStyle(container);
+      const avail = container.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const width = page.offsetWidth;
+      const height = page.offsetHeight;
+      const scale = width > 0 ? Math.min(1, avail / width) : 1;
+      setFit(prev => (prev.scale === scale && prev.width === width && prev.height === height ? prev : { scale, width, height }));
+    };
+    const ro = new ResizeObserver(update);
+    ro.observe(container);
+    ro.observe(page);
+    update();
+    return () => ro.disconnect();
+  }, []);
+
+  return { containerRef, pageRef, fit };
+}
 
 /** Step3: Markdown編集エリア・印刷プレビュー・余白スライダー・警告バナー・PDF出力ボタン。 */
 function EditorPreview({
@@ -13,6 +46,7 @@ function EditorPreview({
   loading,
   onGeneratePdf
 }) {
+  const { containerRef, pageRef, fit } = useFitToWidth();
   return (
     <div className="editor-section">
       <div className="editor-header">
@@ -78,14 +112,20 @@ function EditorPreview({
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
               <rect x="6" y="14" width="12" height="8"></rect>
             </svg>
-            <span>印刷プレビュー (A4想定)</span>
+            <span>印刷プレビュー (A4想定){fit.scale < 1 ? `　${Math.floor(fit.scale * 100)}% で表示` : ''}</span>
           </div>
-          <div className="preview-container">
+          <div className="preview-container" ref={containerRef}>
             <div
-              className="markdown-body"
-              style={{ padding: `${padding}px` }}
-              dangerouslySetInnerHTML={{ __html: markdownToSafeHtml(markdownContent) }}
-            />
+              className="preview-scaler"
+              style={fit.width ? { width: fit.width * fit.scale, height: fit.height * fit.scale } : undefined}
+            >
+              <div
+                ref={pageRef}
+                className="markdown-body"
+                style={{ padding: `${padding}px`, transform: `scale(${fit.scale})` }}
+                dangerouslySetInnerHTML={{ __html: markdownToSafeHtml(markdownContent) }}
+              />
+            </div>
           </div>
         </div>
       </div>
